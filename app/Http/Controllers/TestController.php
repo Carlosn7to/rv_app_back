@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataVoalle;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
     public function index(Request $request)
     {
-        $vendas = DataVoalle::where('vendedor', $request->header('vendedor'))->whereDate('data_ativacao', '>=', '01/05/2022')
-                                ->whereDate('data_ativacao', '<=', '31/05/2022')->get();
+        //$vendas = DataVoalle::where('vendedor', $request->header('vendedor'))->get();
+        //return response()->json($vendas);
 
-        return response()->json($vendas);
+        $user = Usuario::all();
+
+        return response()->json($user);
     }
 }
