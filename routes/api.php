@@ -19,3 +19,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
+
+Route::group(['middleware' => 'auth:api'], function() {
+
+    Route::get('/validatedToken', function() {
+       return true;
+    });
+
+});
+
+Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
