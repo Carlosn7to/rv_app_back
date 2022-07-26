@@ -19,12 +19,15 @@ return new class extends Migration
             $table->string('nome_cliente',255);
             $table->string('status',50);
             $table->string('situacao',50);
-            $table->string('data_contrato');
-            $table->string('data_ativacao');
+            $table->string('data_contratotemp');
+            $table->date('data_contrato');
+            $table->string('data_ativacaotemp');
+            $table->date('data_ativacao');
             $table->string('conexao',50);
             $table->string('vendedor',255);
             $table->string('supervisor',255);
-            $table->string('data_cancelamento');
+            $table->string('data_cancelamentotemp');
+            $table->date('data_cancelamento');
             $table->string('plano',255);
             $table->timestamps();
         });
