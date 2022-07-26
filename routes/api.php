@@ -29,3 +29,4 @@ Route::group(['middleware' => 'auth:api'], function() {
 });
 
 Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
+Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
