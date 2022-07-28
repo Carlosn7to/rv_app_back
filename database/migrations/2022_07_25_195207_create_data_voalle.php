@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('data_ativacaotemp');
             $table->date('data_ativacao');
             $table->string('conexao',50);
+            $table->bigInteger('valor');
             $table->string('vendedor',255);
             $table->string('supervisor',255);
             $table->string('data_cancelamentotemp');

@@ -95,10 +95,16 @@ class DataVoalleController extends Controller
         }
 
         $query = $query->select('id', 'id_contrato', 'nome_cliente', 'status', 'situacao', 'data_contrato', 'data_ativacao',
-            'conexao', 'vendedor', 'supervisor', 'data_cancelamento', 'plano')->limit(100)->get();
+            'conexao', 'vendedor', 'supervisor', 'data_cancelamento', 'plano')->where('vendedor', '<>', '')->where('supervisor', '<>', '')->limit(100)->get();
 
         for ($i = 0; $i < 5; $i++) {
             $this->contains_remove($query);
+        }
+
+        foreach($query as $item => $valor) {
+            $valor->nome_cliente = mb_convert_case($valor->nome_cliente, MB_CASE_TITLE, 'UTF-8');
+            $valor->vendedor = mb_convert_case($valor->vendedor, MB_CASE_TITLE, 'UTF-8');
+            $valor->supervisor = mb_convert_case($valor->supervisor, MB_CASE_TITLE, 'UTF-8');
         }
 
         return response()->json($query);
@@ -112,6 +118,60 @@ class DataVoalleController extends Controller
         return response()->json([
             $status, $situations
         ]);
+    }
+
+    public function getVendors(Request $request)
+    {
+        $query = DB::table('data_voalle');
+        $terms = $request->only('vendedor');
+
+        // Busca os dados que correspondem a pesquisa
+        foreach ($terms as $input => $valor) {
+            if($valor) {
+                $query->where($input, 'LIKE', '%'.$valor.'%');
+            }
+        }
+
+        $query = $query->select('vendedor')->where('vendedor', "<>", '')->distinct()->orderBy('vendedor', 'ASC')->get();
+
+        foreach($query as $item => $valor) {
+           $valor->vendedor = mb_convert_case($valor->vendedor, MB_CASE_TITLE, 'UTF-8');
+        }
+
+        return response()->json($query);
+    }
+
+    public function getSupervisors(Request $request)
+    {
+        $query = DB::table('data_voalle');
+        $terms = $request->only('supervisor');
+
+        // Busca os dados que correspondem a pesquisa
+        foreach ($terms as $input => $valor) {
+            if($valor) {
+                $query->where($input, 'LIKE', '%'.$valor.'%');
+            }
+        }
+
+        $query = $query->select('supervisor')->where('supervisor', "<>", '')->distinct()->orderBy('supervisor', 'ASC')->get();
+
+        foreach($query as $item => $valor) {
+            $valor->supervisor = trim(mb_convert_case($valor->supervisor, MB_CASE_TITLE, 'UTF-8'));
+        }
+
+        return response()->json($query);
+    }
+
+    public function getSupervisorData(Request $request)
+    {
+        $vendors = DataVoalle::select('vendedor')->where('supervisor', $request->input('supervisor'))->where('vendedor', '<>', '')->orderBy('vendedor', 'asc')
+                                ->distinct()->get();
+
+        foreach($vendors as $item => $valor) {
+            $valor->vendedor = mb_convert_case($valor->vendedor, MB_CASE_TITLE, 'UTF-8');
+        }
+
+        return response()->json($vendors);
     }
 
     public function create()
