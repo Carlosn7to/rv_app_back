@@ -34,3 +34,5 @@ Route::get('data_items/status', [\App\Http\Controllers\DataVoalleController::cla
 Route::get('data_items/vendors', [\App\Http\Controllers\DataVoalleController::class, 'getVendors']);
 Route::get('data_items/supervisors', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisors']);
 Route::get('data_items/supervisor_data', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisorData']);
+Route::get('data_items/supervisor_amount', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisorAmount']);
+Route::get('data_items/supervisor_team', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisorTeam']);

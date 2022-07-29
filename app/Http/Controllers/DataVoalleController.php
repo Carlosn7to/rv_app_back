@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataVoalle;
+use Carbon\Carbon;
 use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\Array_;
 
 class DataVoalleController extends Controller
 {
     public function index(Request $request)
     {
 
-        $query = DB::table('data_voalle');
+        $query = DB::connection('mysql')->table('data_voalle');
 
         //return response()->json($request->all());
 
@@ -122,7 +124,7 @@ class DataVoalleController extends Controller
 
     public function getVendors(Request $request)
     {
-        $query = DB::table('data_voalle');
+        $query = DB::connection('mysql')->table('data_voalle');
         $terms = $request->only('vendedor');
 
         // Busca os dados que correspondem a pesquisa
@@ -143,7 +145,7 @@ class DataVoalleController extends Controller
 
     public function getSupervisors(Request $request)
     {
-        $query = DB::table('data_voalle');
+        $query = DB::connection('mysql')->table('data_voalle');
         $terms = $request->only('supervisor');
 
         // Busca os dados que correspondem a pesquisa
@@ -172,6 +174,61 @@ class DataVoalleController extends Controller
         }
 
         return response()->json($vendors);
+    }
+
+    public function getSupervisorAmount(Request $request)
+    {
+        $supervisor = 'Keila Jaqueline da Silva';
+
+        $query = 'SELECT SUM(valor) as "Valor", MONTHNAME(data_contrato) AS "Mês", YEAR(data_contrato) as "Ano"
+                    FROM data_voalle WHERE supervisor = "'.$supervisor.'"
+                    AND data_contrato >= 2022-01-01 GROUP BY YEAR(data_contrato), MONTH(data_contrato)';
+
+        $query = DB::connection('mysql')->select($query);
+
+        foreach ($query as $field => $valor) {
+            $valor->Valor = $valor->Valor/100;
+        }
+
+        $amount = array();
+        foreach ($query as $row => $valor) {
+            $amount[] = $valor->Valor;
+        }
+
+        $month = array();
+        foreach ($query as $row => $valor) {
+            $month[] = $valor->Mês;
+        }
+
+
+        return response()->json([
+            'data' => $query,
+            'amount' => $amount,
+            'month' => $month
+        ]);
+    }
+
+    public function getSupervisorTeam()
+    {
+        $data = Carbon::now();
+        $data = date('Y/m/d', strtotime('-35 days', strtotime($data)));
+        $supervisor = 'Keila Jaqueline da Silva';
+
+        $active = DataVoalle::whereDate('data_contrato', '>=', $data)->where('supervisor', $supervisor)->select('vendedor')->distinct()->orderBy('vendedor')->get();
+
+        $inactive = DB::connection('mysql')->table('data_voalle');
+
+        foreach($active as $vendor => $name) {
+            $inactive->where('vendedor', '<>', "$name->vendedor");
+        }
+
+        $inactive = $inactive->whereDate('data_contrato', '<=', $data)->where('vendedor', '<>', '')->where('supervisor', $supervisor)
+                    ->select('vendedor')->distinct()->orderBy('vendedor')->get();
+
+        return response()->json([
+            'active' => count($active),
+            'inative' => count($inactive)
+        ]);
     }
 
     public function create()

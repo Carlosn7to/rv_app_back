@@ -12,6 +12,7 @@ class DataVoalle extends Model
     protected $table = 'data_voalle';
     protected $fillable = ['id_contrato', 'nome_cliente', 'status', 'data_contrato', 'data_ativacao', 'conexao',
                             'vendedor', 'supervisor', 'data_cancelamento', 'plano'];
+    protected $connection = 'mysql';
 
 
 }
