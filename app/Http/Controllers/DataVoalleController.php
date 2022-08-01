@@ -231,6 +231,46 @@ class DataVoalleController extends Controller
         ]);
     }
 
+    public function filterSalesVendor(Request $request)
+    {
+        $year = $request->only('year');
+        $month = $request->only('month');
+        $status = $request->only('status');
+        $username = $request->header('username');
+
+
+        $sales = DataVoalle::select('id',
+            'id_contrato',
+            'nome_cliente',
+            'status',
+            'data_contrato',
+            'data_ativacao',
+            'vendedor',
+            'plano')
+            ->where('vendedor', $username)
+            ->whereMonth('data_contrato','=', $month)
+            ->whereYear('data_contrato', '=', $year)
+            ->where('status', $status)->limit(10)->get();
+
+        $topSale = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
+                                ->where('vendedor', $username)
+                                ->groupBy('plano')
+                                ->orderBy('qntd', 'desc')
+                                ->limit(1)->distinct()->get();
+
+        return $topSale;
+
+
+
+        return response()->json([
+            'sales' => $sales,
+            'dashboard' => [
+                'sales' => count($sales),
+
+            ]
+        ]);
+    }
+
     public function create()
     {
         //
