@@ -238,7 +238,6 @@ class DataVoalleController extends Controller
         $status = $request->only('status');
         $username = $request->header('username');
 
-
         $sales = DataVoalle::select('id',
             'id_contrato',
             'nome_cliente',
@@ -250,23 +249,51 @@ class DataVoalleController extends Controller
             ->where('vendedor', $username)
             ->whereMonth('data_contrato','=', $month)
             ->whereYear('data_contrato', '=', $year)
-            ->where('status', $status)->limit(10)->get();
+            ->where('status', $status)->get();
 
         $topSale = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
                                 ->where('vendedor', $username)
+                                ->where('status', $status)
+                                ->whereMonth('data_contrato','=', $month)
+                                ->whereYear('data_contrato', '=', $year)
                                 ->groupBy('plano')
                                 ->orderBy('qntd', 'desc')
-                                ->limit(1)->distinct()->get();
+                                ->limit(1)->distinct()->first();
 
-        return $topSale;
+        $cancelled = DataVoalle::select('plano')->where('vendedor', $username)
+                                    ->whereMonth('data_contrato', '=', $month)
+                                    ->whereYear('data_contrato', '=', $year)
+                                    ->where('status', 'Cancelado')->count();
 
+        //limpeza da string plano array
+        for($i = 0; $i < 5; $i++) {
+            $this->contains_remove($sales);
+        }
 
+        // limpeza da string plano
+        for($i = 0; $i < 5; $i++) {
+                if(str_contains($topSale->plano, 'FIDELIZADO')) {
+                    $topSale->plano = explode('FIDELIZADO', $topSale->plano)[0];
+                } elseif (str_contains($topSale->plano, 'TURBINADO')) {
+                    $topSale->plano = explode('TURBINADO', $topSale->plano)[0];
+                } elseif (str_contains($topSale->plano, '+')) {
+                    $topSale->plano = explode('+', $topSale->plano)[0];
+                } elseif (str_contains($topSale->plano, 'PROMOCAO')) {
+                    $topSale->plano = explode('PROMOCAO', $topSale->plano)[0];
+                } elseif (str_contains($topSale->plano, 'NÃO')) {
+                    $topSale->plano = explode('NÃO', $topSale->plano)[0];
+                } elseif(str_contains($topSale->plano, 'EMPRESARIAL')) {
+                    $topSale->plano = explode('EMPRESARIAL', $topSale->plano)[1];
+                }
+        }
 
         return response()->json([
             'sales' => $sales,
             'dashboard' => [
                 'sales' => count($sales),
-
+                'plan' => $topSale->plano,
+                'plan_qntd' => $topSale->qntd,
+                'cancelled' => $cancelled
             ]
         ]);
     }
