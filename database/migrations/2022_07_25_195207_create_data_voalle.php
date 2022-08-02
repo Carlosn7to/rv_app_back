@@ -27,9 +27,11 @@ return new class extends Migration
             $table->bigInteger('valor');
             $table->string('vendedor',255);
             $table->string('supervisor',255);
+            $table->string('canal');
             $table->string('data_cancelamentotemp');
             $table->date('data_cancelamento');
             $table->string('plano',255);
+            $table->integer('estrela');
             $table->timestamps();
         });
     }

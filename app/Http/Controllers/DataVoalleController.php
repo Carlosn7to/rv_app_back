@@ -235,34 +235,68 @@ class DataVoalleController extends Controller
     {
         $year = $request->only('year');
         $month = $request->only('month');
-        $status = $request->only('status');
+        $status = [];
         $username = $request->header('username');
 
         $sales = DataVoalle::select('id',
             'id_contrato',
             'nome_cliente',
             'status',
+            'situacao',
             'data_contrato',
             'data_ativacao',
+            'data_cancelamento',
             'vendedor',
-            'plano')
+            'plano',
+            'estrela')
             ->where('vendedor', $username)
-            ->whereMonth('data_contrato','=', $month)
-            ->whereYear('data_contrato', '=', $year)
+            ->whereMonth('data_ativacao','=', $month)
+            ->whereYear('data_ativacao', '=', $year)
+            ->where('status', $status)->get();
+
+        foreach($sales as $sale => $valor) {
+            if($valor->situacao === 'Cancelado') {
+                $dateActive = Carbon::parse($valor->data_ativacao);
+                $dateCancel = Carbon::parse($valor->data_cancelamento);
+                if($dateActive->diffInDays($dateCancel) < 7) {
+                    $updateStatus = DataVoalle::where('id', $valor->id)->first();
+
+                    $updateStatus->update([
+                        'status' => 'Inválida'
+                    ]);
+                }
+            }
+        }
+
+        $salesCount = DataVoalle::select('id',
+            'id_contrato',
+            'nome_cliente',
+            'status',
+            'situacao',
+            'data_contrato',
+            'data_ativacao',
+            'data_cancelamento',
+            'vendedor',
+            'plano',
+            'estrela')
+            ->where('vendedor', $username)
+            ->where('status', '<>', 'Inválida')
+            ->whereMonth('data_ativacao','=', $month)
+            ->whereYear('data_ativacao', '=', $year)
             ->where('status', $status)->get();
 
         $topSale = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
                                 ->where('vendedor', $username)
                                 ->where('status', $status)
-                                ->whereMonth('data_contrato','=', $month)
-                                ->whereYear('data_contrato', '=', $year)
+                                ->whereMonth('data_ativacao','=', $month)
+                                ->whereYear('data_ativacao', '=', $year)
                                 ->groupBy('plano')
                                 ->orderBy('qntd', 'desc')
                                 ->limit(1)->distinct()->first();
 
         $cancelled = DataVoalle::select('plano')->where('vendedor', $username)
-                                    ->whereMonth('data_contrato', '=', $month)
-                                    ->whereYear('data_contrato', '=', $year)
+                                    ->whereMonth('data_ativacao', '=', $month)
+                                    ->whereYear('data_ativacao', '=', $year)
                                     ->where('status', 'Cancelado')->count();
 
         //limpeza da string plano array
@@ -284,17 +318,93 @@ class DataVoalleController extends Controller
                     $topSale->plano = explode('NÃO', $topSale->plano)[0];
                 } elseif(str_contains($topSale->plano, 'EMPRESARIAL')) {
                     $topSale->plano = explode('EMPRESARIAL', $topSale->plano)[1];
+                } elseif(str_contains($topSale->plano, 'PLANO')) {
+                    $topSale->plano = explode('PLANO', $topSale->plano)[1];
                 }
         }
+
+
 
         return response()->json([
             'sales' => $sales,
             'dashboard' => [
-                'sales' => count($sales),
+                'sales' => count($salesCount),
                 'plan' => $topSale->plano,
                 'plan_qntd' => $topSale->qntd,
-                'cancelled' => $cancelled
-            ]
+                'cancelled' => $cancelled,
+                'stars' => $this->stars($username, $status, $month, $year, count($sales))
+            ],
+        ]);
+    }
+
+    public function stars($username, $status, $month, $year, $sales)
+    {
+
+        $plans = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
+            ->where('vendedor', $username)
+            ->where('status', '<>', 'Inválida')
+            ->whereMonth('data_ativacao','=', $month)
+            ->whereYear('data_ativacao', '=', $year)
+            ->groupBy('plano')
+            ->orderBy('qntd', 'desc')
+            ->distinct()->get();
+
+        // Regra de negócio
+        $stars = 0;
+        $totalStars = 0;
+        $priceStar = 0;
+        $meta = 15;
+        $channel = 'PJ';
+        // Variação no valor baseado na porcentagem da meta
+
+            // Descobrindo a porcentagem de vendas sobre a meta
+            $result = $sales / $meta * 100;
+
+
+            // Aplicando remuneração variável
+            if($channel === 'PJ') {
+                if($result >= 60 && $result < 100) {
+                    $priceStar = 1.30;
+                } elseif($result >= 100 && $result < 120) {
+                    $priceStar = 3;
+                } elseif($result >= 120 && $result < 141) {
+                    $priceStar = 5;
+                } elseif($result >= 141) {
+                    $priceStar = 7;
+                }
+            }
+
+        //limpeza da string plano array
+        for($i = 0; $i < 5; $i++) {
+            $this->contains_remove($plans);
+        }
+
+        foreach($plans as $plan => $valor){
+            $valor->plano = trim($valor->plano);
+            if($valor->plano === 'PLANO EMPRESARIAL 600 MEGA') {
+                $stars += $valor->qntd*9;
+            } elseif ($valor->plano === 'PLANO EMPRESARIAL 800 MEGA') {
+                $stars += $valor->qntd*17;
+            } elseif ($valor->plano === 'PLANO EMPRESARIAL 1 GIGA') {
+                $stars += $valor->qntd*35;
+            } elseif ($valor->plano === 'PLANO 240 MEGA') {
+                $stars += $valor->qntd*9;
+            } elseif ($valor->plano === 'PLANO 120 MEGA') {
+                $stars += $valor->qntd*7;
+            } elseif ($valor->plano === 'PLANO 740 MEGA') {
+                $stars += $valor->qntd*25;
+            } elseif ($valor->plano === 'PLANO 480 MEGA') {
+                $stars += $valor->qntd*15;
+            } elseif ($valor->plano === 'PLANO EMPRESARIAL  600 MEGA') {
+                $stars += $valor->qntd*9;
+            }
+        }
+
+        return response()->json([
+            'comission' => number_format($priceStar * $stars, 2),
+            'stars' => $stars,
+            'price' => number_format($priceStar, 2),
+            'meta' => round($result, 2)
         ]);
     }
 
