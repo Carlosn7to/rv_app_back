@@ -10,9 +10,13 @@ class DataVoalle extends Model
     use HasFactory;
 
     protected $table = 'data_voalle';
-    protected $fillable = ['id_contrato', 'nome_cliente', 'status', 'data_contrato', 'data_ativacao', 'conexao',
+    protected $fillable = ['id_contrato', 'nome_cliente', 'status', 'situacao', 'valor', 'data_contrato', 'data_ativacao', 'conexao',
                             'vendedor', 'supervisor', 'data_cancelamento', 'plano'];
     protected $connection = 'mysql';
 
 
+    public function channels()
+    {
+        return $this->hasOne(Collaborator::class, 'nome', 'vendedor')->select('nome','canal');
+    }
 }

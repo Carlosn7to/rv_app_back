@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Collaborator;
 use App\Models\DataVoalle;
+use App\Models\Meta;
 use Carbon\Carbon;
 use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
@@ -233,8 +235,16 @@ class DataVoalleController extends Controller
 
     public function filterSalesVendor(Request $request)
     {
-        $year = $request->only('year');
-        $month = $request->only('month');
+        $year = $request->input('year');
+        $month = $request->input('month');
+
+        // verifica se o input veio com os dados do filtro, se não, tras os dados do mês atual
+        if($year === null) {
+            $year = Carbon::now()->format('Y');
+        }
+        if($month === null) {
+            $month = Carbon::now()->format('m');
+        }
         $status = [];
         $username = $request->header('username');
 
@@ -247,8 +257,7 @@ class DataVoalleController extends Controller
             'data_ativacao',
             'data_cancelamento',
             'vendedor',
-            'plano',
-            'estrela')
+            'plano')
             ->where('vendedor', $username)
             ->whereMonth('data_ativacao','=', $month)
             ->whereYear('data_ativacao', '=', $year)
@@ -277,8 +286,7 @@ class DataVoalleController extends Controller
             'data_ativacao',
             'data_cancelamento',
             'vendedor',
-            'plano',
-            'estrela')
+            'plano')
             ->where('vendedor', $username)
             ->where('status', '<>', 'Inválida')
             ->whereMonth('data_ativacao','=', $month)
@@ -305,7 +313,8 @@ class DataVoalleController extends Controller
         }
 
         // limpeza da string plano
-        for($i = 0; $i < 5; $i++) {
+        if(isset($topSale->plano)) {
+            for($i = 0; $i < 5; $i++) {
                 if(str_contains($topSale->plano, 'FIDELIZADO')) {
                     $topSale->plano = explode('FIDELIZADO', $topSale->plano)[0];
                 } elseif (str_contains($topSale->plano, 'TURBINADO')) {
@@ -321,26 +330,50 @@ class DataVoalleController extends Controller
                 } elseif(str_contains($topSale->plano, 'PLANO')) {
                     $topSale->plano = explode('PLANO', $topSale->plano)[1];
                 }
+            }
         }
 
+        // Validações dos campos recebidos
+            if(isset($topSale->plano)) {
+                $plan = $topSale->plano;
+            } else {
+                $plan = 'Nenhum plano encontrado';
+            }
 
+            if(isset($topSale->plano)) {
+                $plan_qntd = $topSale->qntd;
+            } else {
+                $plan_qntd = 'Nenhum plano encontrado';
+            }
+
+        // Projeção de vendas
+
+            // recupera o dia de hoje
+            $today = Carbon::now()->format('d');
+
+            // Conta quantos dias tem o mês
+            $daysMonth = Carbon::now()->format('t');
+
+            // Subtrai as datas para verificar a quantidade de dias restante
+            $daysMissing = $daysMonth - $today;
 
         return response()->json([
             'sales' => $sales,
             'dashboard' => [
                 'sales' => count($salesCount),
-                'plan' => $topSale->plano,
-                'plan_qntd' => $topSale->qntd,
+                'plan' => $plan,
+                'plan_qntd' => $plan_qntd,
                 'cancelled' => $cancelled,
                 'stars' => $this->stars($username, $status, $month, $year, count($sales))
-            ],
+            ]
         ]);
     }
 
     public function stars($username, $status, $month, $year, $sales)
     {
 
-        $plans = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
+
+        $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
             ->where('vendedor', $username)
             ->where('status', '<>', 'Inválida')
             ->whereMonth('data_ativacao','=', $month)
@@ -349,20 +382,55 @@ class DataVoalleController extends Controller
             ->orderBy('qntd', 'desc')
             ->distinct()->get();
 
+        $channel = Collaborator::where('nome', $username)->select('id','canal')->first();
+        $meta = Meta::where('colaborador_id', $channel->id)->where('mes_competencia', $month)->select('meta')->first();
+
+
         // Regra de negócio
         $stars = 0;
         $totalStars = 0;
         $priceStar = 0;
-        $meta = 15;
-        $channel = 'PJ';
+        $channel = $channel->canal;
+
+        // Recuperando meta
+        if(isset($meta->meta)) {
+            $meta = $meta->meta;
+        } else {
+            $meta = 0;
+        }
+
         // Variação no valor baseado na porcentagem da meta
-
-            // Descobrindo a porcentagem de vendas sobre a meta
+        if($meta > 0) {
             $result = $sales / $meta * 100;
-
+        } else {
+            return "Colaborador sem meta definida";
+        }
 
             // Aplicando remuneração variável
             if($channel === 'PJ') {
+
+                if($result >= 60 && $result < 100) {
+                    $priceStar = 1.30;
+                } elseif($result >= 100 && $result < 120) {
+                    $priceStar = 3;
+                } elseif($result >= 120 && $result < 141) {
+                    $priceStar = 5;
+                } elseif($result >= 141) {
+                    $priceStar = 7;
+                }
+            } elseif ($channel === 'MCV') {
+
+                if($result >= 60 && $result < 100) {
+                    $priceStar = 0.90;
+                } elseif($result >= 100 && $result < 120) {
+                    $priceStar = 1.20;
+                } elseif($result >= 120 && $result < 141) {
+                    $priceStar = 2;
+                } elseif($result >= 141) {
+                    $priceStar = 4.5;
+                }
+            } elseif ($channel === 'PAP') {
+
                 if($result >= 60 && $result < 100) {
                     $priceStar = 1.30;
                 } elseif($result >= 100 && $result < 120) {
@@ -404,13 +472,188 @@ class DataVoalleController extends Controller
             'comission' => number_format($priceStar * $stars, 2),
             'stars' => $stars,
             'price' => number_format($priceStar, 2),
-            'meta' => round($result, 2)
+            'meta' => round($result, 2),
+            'projection' => $this->starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
+        ]);
+    }
+
+    public function starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
+    {
+        $stars = $stars;
+        $today = Carbon::now()->format('d');
+        $daysMonth = Carbon::now()->format('t');
+        $missing = $daysMonth - $today;
+        $starsMissing = $missing * $stars;
+        $result = $starsMissing / $today;
+        $comission = $result * $priceStar;
+
+
+        return response()->json([
+            'today' => $today,
+            'missing' => $missing,
+            'stars' =>   number_format($result, 0),
+            'comission' => $this->comissionRule($username, $status, $month, $year, $sales, number_format($result, 0))
+        ]);
+
+    }
+
+    public function comissionRule($username, $status, $month, $year, $sales, $stars)
+    {
+
+        $sales = $sales;
+        $today = Carbon::now()->format('d');
+        $daysMonth = Carbon::now()->format('t');
+        $missing = $daysMonth - $today;
+        $starsMissing = $missing * $sales;
+        $resultSales = $starsMissing / $today;
+
+        $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
+            ->where('vendedor', $username)
+            ->where('status', '<>', 'Inválida')
+            ->whereMonth('data_ativacao','=', $month)
+            ->whereYear('data_ativacao', '=', $year)
+            ->groupBy('plano')
+            ->orderBy('qntd', 'desc')
+            ->distinct()->get();
+
+        $channel = Collaborator::where('nome', $username)->select('id','canal')->first();
+        $meta = Meta::where('colaborador_id', $channel->id)->where('mes_competencia', $month)->select('meta')->first();
+
+
+        // Regra de negócio
+        $totalStars = 0;
+        $priceStar = 0;
+        $channel = $channel->canal;
+
+        // Recuperando meta
+        if(isset($meta->meta)) {
+            $meta = $meta->meta;
+        } else {
+            $meta = 0;
+        }
+
+        // Variação no valor baseado na porcentagem da meta
+        if($meta > 0) {
+            $result = $sales / $meta * 100;
+        } else {
+            return "Colaborador sem meta definida";
+        }
+
+
+        // Projetando meta baseado na regra de 3
+        $missing = $daysMonth - $today;
+        $metaMissing = $missing * $result;
+        $result = $metaMissing / $today;
+
+        // Aplicando remuneração variável
+        if($channel === 'PJ') {
+
+            if($result >= 70 && $result < 100) {
+                $priceStar = 1.30;
+            } elseif($result >= 100 && $result < 120) {
+                $priceStar = 3;
+            } elseif($result >= 120 && $result < 141) {
+                $priceStar = 5;
+            } elseif($result >= 141) {
+                $priceStar = 7;
+            }
+        } elseif ($channel === 'MCV') {
+
+            if($result >= 70 && $result < 100) {
+                $priceStar = 0.90;
+            } elseif($result >= 100 && $result < 120) {
+                $priceStar = 1.20;
+            } elseif($result >= 120 && $result < 141) {
+                $priceStar = 2;
+            } elseif($result >= 141) {
+                $priceStar = 4.5;
+            }
+        } elseif ($channel === 'PAP') {
+
+            if($result >= 70 && $result < 100) {
+                $priceStar = 1.30;
+            } elseif($result >= 100 && $result < 120) {
+                $priceStar = 3;
+            } elseif($result >= 120 && $result < 141) {
+                $priceStar = 5;
+            } elseif($result >= 141) {
+                $priceStar = 7;
+            }
+        }
+
+        return response()->json([
+            'sales' => $resultSales,
+            'meta' => number_format($result, 2),
+            'comission' => number_format($stars * $priceStar, 2, ',', '.')
         ]);
     }
 
     public function create()
     {
-        //
+        $query = 'SELECT DISTINCT
+                    c.id as "id_contrato",
+                    p.name AS "nome_cliente",
+                    c.v_stage as "status",
+                    c.v_status as "situacao",
+                    c.date as "data_contrato",
+                    caa.activation_date as "data_ativacao",
+                    ac.user as "conexao",
+                    c.amount AS "valor",
+                    (SELECT name AS "vendedor" FROM erp.people p WHERE c.seller_1_id = p.id),
+                    (SELECT name AS "supervisor" FROM erp.people p WHERE c.seller_2_id = p.id),
+                    c.cancellation_date AS "data_cancelamento",
+                    CASE
+                        WHEN sp.title <> \'\' THEN sp.title
+                        WHEN c.v_status = \'Cancelado\' THEN
+                            CASE
+                                WHEN cst.title is null THEN cst2.title
+                                ELSE
+                                    cst.title
+                            END
+                    END AS "plano"
+                FROM
+                    erp.contracts c
+                LEFT JOIN
+                    erp.contract_assignment_activations caa ON caa.contract_id = c.id
+                LEFT JOIN
+                    erp.authentication_contracts ac ON ac.contract_id = c.id
+                LEFT JOIN
+                    erp.people p ON p.id = c.client_id
+                LEFT JOIN
+                    erp.service_products sp ON ac.service_product_id = sp.id
+                LEFT JOIN
+                    erp.contract_service_tags cst ON cst.contract_id = c.id AND cst.title LIKE \'PLANO COMBO%\'
+                LEFT JOIN
+                    erp.contract_service_tags cst2 ON cst2.contract_id = c.id AND cst2.title LIKE \'PLANO%\' AND cst2.title NOT LIKE \'%COMBO%\'
+                WHERE
+                    caa.contract_id = c.id
+                    OR
+                    ac.user LIKE \'ALCL%\'';
+
+        $salesVoalle = DB::connection('pgsql')->select($query);
+
+        // Instanciando o banco de dados local
+        $dataVoalle = new DataVoalle();
+
+        set_time_limit(500);
+
+        foreach($salesVoalle as $sale => $value) {
+            $dataVoalle->firstOrCreate([
+                'id_contrato' => $value->id_contrato,
+            ], [
+                'nome_cliente' => $value->nome_cliente,
+                'status' => $value->status,
+                'situacao' => $value->situacao,
+                'data_contrato' => $value->data_contrato,
+                'data_ativacao' => $value->data_ativacao,
+                'conexao' => $value->conexao,
+                'valor' => $value->valor,
+                'vendedor' => $value->vendedor,
+                'supervisor' => $value->supervisor,
+                'data_cancelamento' => $value->data_cancelamento,
+                'plano' => $value->plano,
+            ]);
+        }
     }
 
     public function store(Request $request)
