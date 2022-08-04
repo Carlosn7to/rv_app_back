@@ -582,6 +582,10 @@ class DataVoalleController extends Controller
             }
         }
 
+        $starsInt = intval($stars);
+
+        return $starsInt;
+
         $comission = intval($stars) * $priceStar;
 
         return response()->json([
