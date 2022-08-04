@@ -584,7 +584,7 @@ class DataVoalleController extends Controller
 
         $starsInt = (int) $stars;
 
-        return $starsInt;
+        return $stars;
 
         $comission = intval($stars) * $priceStar;
 
