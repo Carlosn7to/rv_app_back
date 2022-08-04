@@ -582,7 +582,7 @@ class DataVoalleController extends Controller
             }
         }
 
-        $starsInt = intval($stars);
+        $starsInt = (int) $stars;
 
         return $starsInt;
 
