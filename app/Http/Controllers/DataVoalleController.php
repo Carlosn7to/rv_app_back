@@ -582,7 +582,7 @@ class DataVoalleController extends Controller
         }
 
         return response()->json([
-            'sales' => $resultSales,
+            'sales' => number_format($resultSales, 0),
             'meta' => number_format($result, 2),
             'comission' => number_format($stars * $priceStar, 2, ',', '.')
         ]);
