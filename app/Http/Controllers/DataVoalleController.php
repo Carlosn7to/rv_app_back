@@ -488,6 +488,8 @@ class DataVoalleController extends Controller
         $result = $starsMissing / $today;
         $comission = $result * $priceStar;
 
+        return $result;
+
 
         return response()->json([
             'today' => $today,
@@ -582,9 +584,7 @@ class DataVoalleController extends Controller
             }
         }
 
-        $starsInt = (int) $stars;
 
-        $stars = (float)$stars;
 
         return $stars;
 
