@@ -480,8 +480,6 @@ class DataVoalleController extends Controller
     public function starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
     {
 
-        return "starRule";
-
         $stars = $stars;
         $today = Carbon::now()->format('d');
         $daysMonth = Carbon::now()->format('t');
@@ -502,6 +500,8 @@ class DataVoalleController extends Controller
 
     public function comissionRule($username, $status, $month, $year, $sales, $stars)
     {
+
+        return "comission rule";
 
         $sales = $sales;
         $today = Carbon::now()->format('d');
