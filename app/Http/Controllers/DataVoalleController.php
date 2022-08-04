@@ -584,7 +584,7 @@ class DataVoalleController extends Controller
 
         $starsInt = (int) $stars;
 
-        $stars = (int)$stars;
+        $stars = (double)$stars;
 
         return $stars;
 
