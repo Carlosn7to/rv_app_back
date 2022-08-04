@@ -583,7 +583,7 @@ class DataVoalleController extends Controller
         }
 
 
-        return $priceStar;
+        return $stars;
 
         return response()->json([
             'sales' => number_format($resultSales, 0),
