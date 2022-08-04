@@ -26,7 +26,6 @@ Route::group(['middleware' => 'auth:api'], function() {
        return true;
     });
 
-    Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
     Route::get('data_items/status', [\App\Http\Controllers\DataVoalleController::class, 'getFilters']);
     Route::get('data_items/vendors', [\App\Http\Controllers\DataVoalleController::class, 'getVendors']);
     Route::get('data_items/supervisors', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisors']);
@@ -41,3 +40,4 @@ Route::group(['middleware' => 'auth:api'], function() {
 Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
 Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
 
+Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
