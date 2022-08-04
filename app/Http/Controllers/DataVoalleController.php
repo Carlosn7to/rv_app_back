@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PhpParser\Node\Expr\Array_;
 
 class DataVoalleController extends Controller
@@ -246,7 +247,7 @@ class DataVoalleController extends Controller
             $month = Carbon::now()->format('m');
         }
         $status = [];
-        $username = $request->header('username');
+        $username = utf8_encode($request->header('username'));
 
         $sales = DataVoalle::select('id',
             'id_contrato',
@@ -373,6 +374,7 @@ class DataVoalleController extends Controller
     {
 
 
+
         $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
             ->where('vendedor', $username)
             ->where('status', '<>', 'Inválida')
@@ -382,7 +384,7 @@ class DataVoalleController extends Controller
             ->orderBy('qntd', 'desc')
             ->distinct()->get();
 
-        $channel = Collaborator::where('nome', $username)->select('id','canal')->first();
+        $channel = Collaborator::where('nome', 'Camila Meirelles Gonçalvez')->select('id','canal')->first();
         $meta = Meta::where('colaborador_id', $channel->id)->where('mes_competencia', $month)->select('meta')->first();
 
 
@@ -467,6 +469,10 @@ class DataVoalleController extends Controller
                 $stars += $valor->qntd*15;
             } elseif ($valor->plano === 'PLANO EMPRESARIAL  600 MEGA') {
                 $stars += $valor->qntd*9;
+            } elseif ($valor->plano === 'PLANO 400 MEGA') {
+                $stars += $valor->qntd*15;
+            } elseif ($valor->plano === 'PLANO 800 MEGA') {
+                $stars += $valor->qntd*25;
             }
         }
 
@@ -642,6 +648,8 @@ class DataVoalleController extends Controller
 
         set_time_limit(500);
 
+        DataVoalle::truncate();
+
         foreach($salesVoalle as $sale => $value) {
             $dataVoalle->firstOrCreate([
                 'id_contrato' => $value->id_contrato,
@@ -659,6 +667,11 @@ class DataVoalleController extends Controller
                 'plano' => $value->plano,
             ]);
         }
+
+        $collaborator = new CollaboratorController();
+        $collaborator->create();
+
+        return "Operação realizada";
     }
 
     public function store(Request $request)
