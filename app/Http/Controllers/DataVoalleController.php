@@ -492,7 +492,7 @@ class DataVoalleController extends Controller
             'today' => $today,
             'missing' => $missing,
             'stars' =>   number_format($result, 0),
-            'comission' => $this->comissionRule($username, $status, $month, $year, $sales, number_format($result, 0))
+            'comission' => $this->comissionRule($username, $status, $month, $year, $sales, $result)
         ]);
 
     }
