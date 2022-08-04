@@ -38,12 +38,10 @@ class UsersController extends Controller
 
         $email = strtolower($name[0].".".$name[1]."@agetelecom.com.br");
 
-        $password = 'kIuDA4QTghMh';
-
         $user = User::create([
             'name' => $nameFull,
             'email' => $email,
-            'password' => Hash::make($password)
+            'password' => Hash::make(\Illuminate\Support\Str::random(15))
         ]);
     }
 

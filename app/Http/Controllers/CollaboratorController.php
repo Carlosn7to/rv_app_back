@@ -12,7 +12,15 @@ class CollaboratorController extends Controller
 
     public function index()
     {
-        //
+        $collaborators = Collaborator::select('id', 'nome', 'funcao', 'canal', 'deleted_at')->withTrashed()->get();
+
+        foreach($collaborators as $c => $valor) {
+            $valor->nome = mb_convert_case($valor->nome, MB_CASE_TITLE, 'UTF-8');
+            $valor->funcao = mb_convert_case($valor->funcao, MB_CASE_TITLE, 'UTF-8');
+            $valor->canal = mb_convert_case($valor->canal, MB_CASE_UPPER, 'UTF-8');
+        }
+
+        return response()->json($collaborators);
     }
 
 
