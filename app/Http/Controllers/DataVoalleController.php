@@ -488,9 +488,6 @@ class DataVoalleController extends Controller
         $result = $starsMissing / $today;
         $comission = $result * $priceStar;
 
-        return $result;
-
-
         return response()->json([
             'today' => $today,
             'missing' => $missing,
@@ -502,6 +499,7 @@ class DataVoalleController extends Controller
 
     public function comissionRule($username, $status, $month, $year, $sales, $stars)
     {
+        return $stars;
 
         $sales = $sales;
         $today = Carbon::now()->format('d');
