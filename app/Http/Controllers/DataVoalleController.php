@@ -455,6 +455,8 @@ class DataVoalleController extends Controller
                 $stars += $valor->qntd*17;
             } elseif ($valor->plano === 'PLANO EMPRESARIAL 1 GIGA') {
                 $stars += $valor->qntd*35;
+            } elseif ($valor->plano === 'PLANO 1 GIGA') {
+                $stars += $valor->qntd*35;
             } elseif ($valor->plano === 'PLANO 240 MEGA') {
                 $stars += $valor->qntd*9;
             } elseif ($valor->plano === 'PLANO 120 MEGA') {
