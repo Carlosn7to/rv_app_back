@@ -499,7 +499,6 @@ class DataVoalleController extends Controller
 
     public function comissionRule($username, $status, $month, $year, $sales, $stars)
     {
-        return $stars;
 
         $sales = $sales;
         $today = Carbon::now()->format('d');
@@ -583,10 +582,7 @@ class DataVoalleController extends Controller
         }
 
 
-
-        return $stars;
-
-        $comission = intval($stars) * $priceStar;
+        $comission = $stars * $priceStar;
 
         return response()->json([
             'sales' => number_format($resultSales, 0),
