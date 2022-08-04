@@ -238,8 +238,6 @@ class DataVoalleController extends Controller
         $year = $request->input('year');
         $month = $request->input('month');
 
-        return Carbon::now();
-
         // verifica se o input veio com os dados do filtro, se não, tras os dados do mês atual
         if($year === null) {
             $year = Carbon::now()->format('Y');
@@ -249,6 +247,8 @@ class DataVoalleController extends Controller
         }
         $status = [];
         $username = $request->header('username');
+
+        return $username;
 
         $sales = DataVoalle::select('id',
             'id_contrato',
