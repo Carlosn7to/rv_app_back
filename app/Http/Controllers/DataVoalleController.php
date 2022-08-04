@@ -263,8 +263,6 @@ class DataVoalleController extends Controller
             ->whereYear('data_ativacao', '=', $year)
             ->where('status', $status)->get();
 
-        return $sales;
-
         foreach($sales as $sale => $valor) {
             if($valor->situacao === 'Cancelado') {
                 $dateActive = Carbon::parse($valor->data_ativacao);
@@ -481,6 +479,9 @@ class DataVoalleController extends Controller
 
     public function starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
     {
+
+        return "starRule";
+
         $stars = $stars;
         $today = Carbon::now()->format('d');
         $daysMonth = Carbon::now()->format('t');
