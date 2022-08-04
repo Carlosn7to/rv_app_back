@@ -248,8 +248,6 @@ class DataVoalleController extends Controller
         $status = [];
         $username = $request->header('username');
 
-        return $username;
-
         $sales = DataVoalle::select('id',
             'id_contrato',
             'nome_cliente',
@@ -264,6 +262,8 @@ class DataVoalleController extends Controller
             ->whereMonth('data_ativacao','=', $month)
             ->whereYear('data_ativacao', '=', $year)
             ->where('status', $status)->get();
+
+        return $sales;
 
         foreach($sales as $sale => $valor) {
             if($valor->situacao === 'Cancelado') {
