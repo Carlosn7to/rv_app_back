@@ -11,7 +11,7 @@ class Meta extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['colaborador_id', 'meta', 'mes', 'criado_por'];
+    protected $fillable = ['colaborador_id', 'meta', 'mes_competencia', 'user_id'];
     protected $table = 'meta_colaborador';
     protected $connection = 'mysql';
 }

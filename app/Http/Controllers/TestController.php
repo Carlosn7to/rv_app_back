@@ -18,5 +18,24 @@ class TestController extends Controller
     public function index(Request $request)
     {
 
+        $array1 = [
+            'nome' => 'carlos neto',
+            'idade' => 23,
+            'funcao' => 'DEV'
+        ];
+
+        $array2 = [
+            'nome' => 'Vinicius',
+            'idade' => 40,
+            'funcao' => 'DEV Mobile'
+        ];
+
+        $arrayConcat = [];
+
+        $arrayConcat[] = $array1;
+
+
+        return $arrayConcat;
+
     }
 }

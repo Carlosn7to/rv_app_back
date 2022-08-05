@@ -13,5 +13,10 @@ class Collaborator extends Model
 
     protected $table = 'colaboradores';
     protected $connection = 'mysql';
-    protected $fillable = ['nome', 'funcao', 'canal'];
+    protected $fillable = ['nome', 'funcao', 'canal', 'supervisor'];
+
+    public function meta()
+    {
+        return $this->hasOne(Meta::class, 'colaborador_id', 'id')->select('colaborador_id', 'meta');
+    }
 }

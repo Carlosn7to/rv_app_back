@@ -648,7 +648,8 @@ class DataVoalleController extends Controller
 
         set_time_limit(500);
 
-        DataVoalle::truncate();
+        $dataVoalle->truncate();
+
 
         foreach($salesVoalle as $sale => $value) {
             $dataVoalle->firstOrCreate([
