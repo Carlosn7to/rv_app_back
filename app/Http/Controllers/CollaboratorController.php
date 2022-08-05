@@ -31,9 +31,6 @@ class CollaboratorController extends Controller
 
         $collaborators = DB::connection('mysql')->select($query);
 
-        return $collaborators;
-
-
         foreach($collaborators as $c => $valor) {
             $valor->nome = mb_convert_case($valor->nome, MB_CASE_TITLE, 'UTF-8');
             $valor->funcao = mb_convert_case($valor->funcao, MB_CASE_TITLE, 'UTF-8');
