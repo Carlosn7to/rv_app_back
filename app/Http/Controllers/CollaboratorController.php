@@ -23,7 +23,7 @@ class CollaboratorController extends Controller
 //                                    ->leftJoin('meta_colaborador','colaboradores.id', '=', 'meta_colaborador.colaborador_id' )
 //                                    ->withTrashed()->distinct()->orderBy('colaboradores.id', 'desc')->get();
 
-        $query = 'SELECT DISTINCT c.id, c.nome, c.funcao, c.canal, c.supervisor,
+        $query = 'SELECT DISTINCT c.id, c.nome, c.funcao, c.canal, c.supervisor, c.tem_usuario, c.status_usuario,
                     (SELECT DISTINCT meta AS meta FROM meta_colaborador WHERE colaborador_id = c.id AND mes_competencia = \''.Carbon::now()->format('m').'\') AS meta,
                     c.deleted_at
                 FROM colaboradores c

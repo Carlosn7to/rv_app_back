@@ -6,6 +6,7 @@ use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -33,8 +34,11 @@ class AuthController extends Controller
             'password' => $input['password'],
         ];
 
+        $myTTL = 1440; //minutes
+        \Tymon\JWTAuth\Facades\JWTAuth::factory()->setTTL($myTTL);
+
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Unauthorized', 'status' => false], 401);
         }
 
         $user = User::where('email', $input['email'])->select('name', 'permissao_id')->first();

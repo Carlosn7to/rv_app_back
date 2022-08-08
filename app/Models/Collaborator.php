@@ -13,7 +13,7 @@ class Collaborator extends Model
 
     protected $table = 'colaboradores';
     protected $connection = 'mysql';
-    protected $fillable = ['nome', 'funcao', 'canal', 'supervisor'];
+    protected $fillable = ['nome', 'funcao', 'canal', 'supervisor', 'tem_usuario', 'status_usuario'];
 
     public function meta()
     {
