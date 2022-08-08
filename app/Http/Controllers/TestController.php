@@ -18,24 +18,10 @@ class TestController extends Controller
     public function index(Request $request)
     {
 
-        $array1 = [
-            'nome' => 'carlos neto',
-            'idade' => 23,
-            'funcao' => 'DEV'
-        ];
-
-        $array2 = [
-            'nome' => 'Vinicius',
-            'idade' => 40,
-            'funcao' => 'DEV Mobile'
-        ];
-
-        $arrayConcat = [];
-
-        $arrayConcat[] = $array1;
-
-
-        return $arrayConcat;
+        return Collaborator::where('nome', '<>', 'Amanda Andrade Brito')->get()->map(function (Collaborator $collaborator) {
+            $collaborator->nome = mb_convert_case($collaborator->nome, MB_CASE_TITLE, 'UTF-8');
+            return $collaborator;
+        });
 
     }
 }
