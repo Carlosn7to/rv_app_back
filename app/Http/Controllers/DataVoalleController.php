@@ -250,19 +250,19 @@ class DataVoalleController extends Controller
         $username = utf8_encode($request->header('username'));
 
         $sales = DataVoalle::select('id',
-            'id_contrato',
-            'nome_cliente',
-            'status',
-            'situacao',
-            'data_contrato',
-            'data_ativacao',
-            'data_cancelamento',
-            'vendedor',
-            'plano')
-            ->where('vendedor', $username)
-            ->whereMonth('data_ativacao','=', $month)
-            ->whereYear('data_ativacao', '=', $year)
-            ->where('status', $status)->get();
+                            'id_contrato',
+                            'nome_cliente',
+                            'status',
+                            'situacao',
+                            'data_contrato',
+                            'data_ativacao',
+                            'data_cancelamento',
+                            'vendedor',
+                            'plano')
+                            ->where('vendedor', $username)
+                            ->whereMonth('data_ativacao','=', $month)
+                            ->whereYear('data_ativacao', '=', $year)
+                            ->where('status', $status)->get();
 
         foreach($sales as $sale => $valor) {
             if($valor->situacao === 'Cancelado') {
@@ -279,20 +279,20 @@ class DataVoalleController extends Controller
         }
 
         $salesCount = DataVoalle::select('id',
-            'id_contrato',
-            'nome_cliente',
-            'status',
-            'situacao',
-            'data_contrato',
-            'data_ativacao',
-            'data_cancelamento',
-            'vendedor',
-            'plano')
-            ->where('vendedor', $username)
-            ->where('status', '<>', 'Inválida')
-            ->whereMonth('data_ativacao','=', $month)
-            ->whereYear('data_ativacao', '=', $year)
-            ->where('status', $status)->get();
+                                'id_contrato',
+                                'nome_cliente',
+                                'status',
+                                'situacao',
+                                'data_contrato',
+                                'data_ativacao',
+                                'data_cancelamento',
+                                'vendedor',
+                                'plano')
+                                ->where('vendedor', $username)
+                                ->where('status', '<>', 'Inválida')
+                                ->whereMonth('data_ativacao','=', $month)
+                                ->whereYear('data_ativacao', '=', $year)
+                                ->where('status', $status)->get();
 
         $topSale = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
                                 ->where('vendedor', $username)
