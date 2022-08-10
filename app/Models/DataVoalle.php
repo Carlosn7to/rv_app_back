@@ -19,4 +19,11 @@ class DataVoalle extends Model
     {
         return $this->hasOne(Collaborator::class, 'nome', 'vendedor')->select('nome','canal');
     }
+
+    public function plans_supervisor()
+    {
+        return $this->hasMany(DataVoalle::class, 'supervisor', 'supervisor')
+            ->select('supervisor', 'plano');
+    }
+
 }

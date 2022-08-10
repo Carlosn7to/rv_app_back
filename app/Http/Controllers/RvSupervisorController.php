@@ -3,17 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Collaborator;
-use App\Models\Contract;
 use App\Models\DataVoalle;
 use App\Models\Meta;
 use Carbon\Carbon;
-use Carbon\Traits\Date;
-use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use function PHPUnit\Framework\isNull;
 
-class TestController extends Controller
+class RvSupervisorController extends Controller
 {
     public function index(Request $request)
     {
@@ -82,7 +77,7 @@ class TestController extends Controller
             ];
         }
 
-       return response()->json($array);
+        return response()->json($array);
     }
 
     public function plans($plans_supervisor)
@@ -182,10 +177,10 @@ class TestController extends Controller
         $stars = 0;
 
         $plans = DataVoalle::where('supervisor', $name)
-                            ->whereMonth('data_ativacao', $month)
-                            ->whereYear('data_ativacao', $year)
-                            ->where('status', '<>', 'inválida')
-                            ->select('plano')->get();
+            ->whereMonth('data_ativacao', $month)
+            ->whereYear('data_ativacao', $year)
+            ->where('status', '<>', 'inválida')
+            ->select('plano')->get();
 
         foreach($plans as $plan => $valor) {
             $valor = $this->sanitize_plan($valor);
@@ -226,8 +221,8 @@ class TestController extends Controller
         if(isset($collaborator->id)) {
 
             $meta = Meta::where('colaborador_id', $collaborator->id)
-                        ->where('mes_competencia', $month)
-                        ->select('meta')->first();
+                ->where('mes_competencia', $month)
+                ->select('meta')->first();
             if(isset($meta->meta)){
                 $meta = $meta->meta;
             } else {

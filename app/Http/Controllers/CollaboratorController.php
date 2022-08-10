@@ -83,6 +83,8 @@ class CollaboratorController extends Controller
             }
         }
 
+        return response('atualizado', 200);
+
     }
 
     public function store(Request $request)
