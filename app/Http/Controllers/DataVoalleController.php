@@ -257,9 +257,6 @@ class DataVoalleController extends Controller
 
         if(isset($typeCollaborator->vendedor)) {
             $typeCollaborator = 'vendedor';
-
-            return "caiu no vendedor";
-
         } else {
             $typeCollaborator = DataVoalle::where('supervisor', $username)->first();
 
