@@ -18,10 +18,7 @@ class TestController extends Controller
     public function index(Request $request)
     {
 
-        return Collaborator::where('nome', '<>', 'Amanda Andrade Brito')->get()->map(function (Collaborator $collaborator) {
-            $collaborator->nome = mb_convert_case($collaborator->nome, MB_CASE_TITLE, 'UTF-8');
-            return $collaborator;
-        });
+        return "oi";
 
     }
 }

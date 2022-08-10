@@ -249,6 +249,23 @@ class DataVoalleController extends Controller
         $status = [];
         $username = utf8_encode($request->header('username'));
 
+
+        // Função para descobrir se o colaborador é vendedor ou supervisor
+        $typeCollaborator = DataVoalle::where('vendedor', $username)->first();
+        if(isset($typeCollaborator->vendedor)) {
+            $typeCollaborator = 'vendedor';
+
+        } else {
+            $typeCollaborator = DataVoalle::where('supervisor', $username)->first();
+
+            if(isset($typeCollaborator->supervisor)) {
+                $typeCollaborator = 'supervisor';
+            } else {
+                return "Nenhum colaborador encontrado";
+            }
+        }
+
+
         $sales = DataVoalle::select('id',
                             'id_contrato',
                             'nome_cliente',
@@ -258,8 +275,9 @@ class DataVoalleController extends Controller
                             'data_ativacao',
                             'data_cancelamento',
                             'vendedor',
+                            'supervisor',
                             'plano')
-                            ->where('vendedor', $username)
+                            ->where($typeCollaborator, $username)
                             ->whereMonth('data_ativacao','=', $month)
                             ->whereYear('data_ativacao', '=', $year)
                             ->where('status', $status)->get();
@@ -288,14 +306,14 @@ class DataVoalleController extends Controller
                                 'data_cancelamento',
                                 'vendedor',
                                 'plano')
-                                ->where('vendedor', $username)
+                                ->where($typeCollaborator, $username)
                                 ->where('status', '<>', 'Inválida')
                                 ->whereMonth('data_ativacao','=', $month)
                                 ->whereYear('data_ativacao', '=', $year)
                                 ->where('status', $status)->get();
 
         $topSale = DataVoalle::select('plano')->selectRaw('count(id) AS qntd')
-                                ->where('vendedor', $username)
+                                ->where($typeCollaborator, $username)
                                 ->where('status', $status)
                                 ->whereMonth('data_ativacao','=', $month)
                                 ->whereYear('data_ativacao', '=', $year)
@@ -303,7 +321,7 @@ class DataVoalleController extends Controller
                                 ->orderBy('qntd', 'desc')
                                 ->limit(1)->distinct()->first();
 
-        $cancelled = DataVoalle::select('plano')->where('vendedor', $username)
+        $cancelled = DataVoalle::select('plano')->where($typeCollaborator, $username)
                                     ->whereMonth('data_ativacao', '=', $month)
                                     ->whereYear('data_ativacao', '=', $year)
                                     ->where('status', 'Cancelado')->count();
@@ -365,18 +383,18 @@ class DataVoalleController extends Controller
                 'plan' => $plan,
                 'plan_qntd' => $plan_qntd,
                 'cancelled' => $cancelled,
-                'stars' => $this->stars($username, $status, $month, $year, count($sales))
+                'stars' => $this->stars($username, $status, $month, $year, count($sales), $typeCollaborator)
             ]
         ]);
     }
 
-    public function stars($username, $status, $month, $year, $sales)
+    public function stars($username, $status, $month, $year, $sales, $typeCollaborator)
     {
 
 
 
         $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
-            ->where('vendedor', $username)
+            ->where($typeCollaborator, $username)
             ->where('status', '<>', 'Inválida')
             ->whereMonth('data_ativacao','=', $month)
             ->whereYear('data_ativacao', '=', $year)
@@ -384,7 +402,7 @@ class DataVoalleController extends Controller
             ->orderBy('qntd', 'desc')
             ->distinct()->get();
 
-        $channel = Collaborator::where('nome', 'Camila Meirelles Gonçalvez')->select('id','canal')->first();
+        $channel = Collaborator::where('nome', $username)->select('id','canal')->first();
         $meta = Meta::where('colaborador_id', $channel->id)->where('mes_competencia', $month)->select('meta')->first();
 
 
@@ -393,6 +411,12 @@ class DataVoalleController extends Controller
         $totalStars = 0;
         $priceStar = 0;
         $channel = $channel->canal;
+
+
+        // Aplicando canal líder para o comissionamento
+        if($typeCollaborator === 'supervisor') {
+            $channel = 'LIDER';
+        }
 
         // Recuperando meta
         if(isset($meta->meta)) {
@@ -442,6 +466,16 @@ class DataVoalleController extends Controller
                 } elseif($result >= 141) {
                     $priceStar = 7;
                 }
+            } elseif($channel === 'LIDER') {
+                if($result >= 60 && $result < 100) {
+                    $priceStar = 0.25;
+                } elseif($result >= 100 && $result < 120) {
+                    $priceStar = 0.40;
+                } elseif($result >= 120 && $result < 141) {
+                    $priceStar = 0.80;
+                } elseif($result >= 141) {
+                    $priceStar = 1.30;
+                }
             }
 
         //limpeza da string plano array
@@ -481,11 +515,11 @@ class DataVoalleController extends Controller
             'stars' => $stars,
             'price' => number_format($priceStar, 2),
             'meta' => round($result, 2),
-            'projection' => $this->starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
+            'projection' => $this->starsRule($stars, $priceStar, $username, $status, $month, $year, $sales,$typeCollaborator)
         ]);
     }
 
-    public function starsRule($stars, $priceStar, $username, $status, $month, $year, $sales)
+    public function starsRule($stars, $priceStar, $username, $status, $month, $year, $sales, $typeCollaborator)
     {
 
         $stars = $stars;
@@ -500,12 +534,12 @@ class DataVoalleController extends Controller
             'today' => $today,
             'missing' => $missing,
             'stars' =>   number_format($result, 0),
-            'comission' => $this->comissionRule($username, $status, $month, $year, $sales, $result)
+            'comission' => $this->comissionRule($username, $status, $month, $year, $sales, $result, $typeCollaborator)
         ]);
 
     }
 
-    public function comissionRule($username, $status, $month, $year, $sales, $stars)
+    public function comissionRule($username, $status, $month, $year, $sales, $stars, $typeCollaborator)
     {
 
         $sales = $sales;
@@ -516,7 +550,7 @@ class DataVoalleController extends Controller
         $resultSales = $starsMissing / $today;
 
         $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
-            ->where('vendedor', $username)
+            ->where($typeCollaborator, $username)
             ->where('status', '<>', 'Inválida')
             ->whereMonth('data_ativacao','=', $month)
             ->whereYear('data_ativacao', '=', $year)
@@ -532,6 +566,11 @@ class DataVoalleController extends Controller
         $totalStars = 0;
         $priceStar = 0;
         $channel = $channel->canal;
+
+        // Aplicando canal líder para o comissionamento
+        if($typeCollaborator === 'supervisor') {
+            $channel = 'LIDER';
+        }
 
         // Recuperando meta
         if(isset($meta->meta)) {
@@ -556,7 +595,7 @@ class DataVoalleController extends Controller
         // Aplicando remuneração variável
         if($channel === 'PJ') {
 
-            if($result >= 70 && $result < 100) {
+            if($result >= 60 && $result < 100) {
                 $priceStar = 1.30;
             } elseif($result >= 100 && $result < 120) {
                 $priceStar = 3;
@@ -567,7 +606,7 @@ class DataVoalleController extends Controller
             }
         } elseif ($channel === 'MCV') {
 
-            if($result >= 70 && $result < 100) {
+            if($result >= 60 && $result < 100) {
                 $priceStar = 0.90;
             } elseif($result >= 100 && $result < 120) {
                 $priceStar = 1.20;
@@ -578,7 +617,7 @@ class DataVoalleController extends Controller
             }
         } elseif ($channel === 'PAP') {
 
-            if($result >= 70 && $result < 100) {
+            if($result >= 60 && $result < 100) {
                 $priceStar = 1.30;
             } elseif($result >= 100 && $result < 120) {
                 $priceStar = 3;
@@ -586,6 +625,16 @@ class DataVoalleController extends Controller
                 $priceStar = 5;
             } elseif($result >= 141) {
                 $priceStar = 7;
+            }
+        } elseif($channel === 'LIDER') {
+            if($result >= 60 && $result < 100) {
+                $priceStar = 0.25;
+            } elseif($result >= 100 && $result < 120) {
+                $priceStar = 0.40;
+            } elseif($result >= 120 && $result < 141) {
+                $priceStar = 0.80;
+            } elseif($result >= 141) {
+                $priceStar = 1.30;
             }
         }
 

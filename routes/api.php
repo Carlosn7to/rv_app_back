@@ -33,7 +33,6 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::get('data_items/supervisor_amount', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisorAmount']);
     Route::get('data_items/supervisor_team', [\App\Http\Controllers\DataVoalleController::class, 'getSupervisorTeam']);
     Route::resource('users', \App\Http\Controllers\UsersController::class);
-    Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
     Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
 
 
@@ -41,3 +40,4 @@ Route::group(['middleware' => 'auth:api'], function() {
 
 Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
 Route::resource('collaborator', \App\Http\Controllers\CollaboratorController::class);
+Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
