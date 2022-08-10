@@ -249,11 +249,16 @@ class DataVoalleController extends Controller
         $status = [];
         $username = utf8_encode($request->header('username'));
 
-
         // Função para descobrir se o colaborador é vendedor ou supervisor
-        $typeCollaborator = DataVoalle::where('vendedor', $username)->first();
+        $typeCollaborator = DataVoalle::where('vendedor', $username)
+                                        ->whereMonth('data_ativacao','=', $month)
+                                        ->whereYear('data_ativacao', '=', $year)->first();
+
+
         if(isset($typeCollaborator->vendedor)) {
             $typeCollaborator = 'vendedor';
+
+            return "caiu no vendedor";
 
         } else {
             $typeCollaborator = DataVoalle::where('supervisor', $username)->first();
