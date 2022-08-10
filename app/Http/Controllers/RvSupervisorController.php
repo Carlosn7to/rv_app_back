@@ -13,13 +13,15 @@ class RvSupervisorController extends Controller
     public function index(Request $request)
     {
 
-        $month = '08';
+        $month = '07';
         $year = '2022';
         $typeCollaborator = 'supervisor';
 
         $sales = DataVoalle::select('id',
             'status',
-            'situacao')
+            'situacao',
+            'data_ativacao',
+            'data_cancelamento')
             ->whereMonth('data_ativacao','=', $month)
             ->whereYear('data_ativacao', '=', $year)
             ->get();
@@ -28,7 +30,7 @@ class RvSupervisorController extends Controller
             if($valor->situacao === 'Cancelado') {
                 $dateActive = Carbon::parse($valor->data_ativacao);
                 $dateCancel = Carbon::parse($valor->data_cancelamento);
-                if($dateActive->diffInDays($dateCancel) < 7) {
+                if($dateActive->diffInDays($dateCancel) <= 7) {
                     $updateStatus = DataVoalle::where('id', $valor->id)->first();
 
                     $updateStatus->update([
