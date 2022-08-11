@@ -44,16 +44,18 @@ class RvSupervisorController extends Controller
             ->whereMonth('data_ativacao', '=', $month)
             ->whereYear('data_ativacao', '=', $year)
             ->where('status', '<>', 'inválida')
+            ->where($typeCollaborator, '<>', '')
             ->with(['plans_supervisor' => function($q) use($month) {
                 $q->whereMonth('data_ativacao', $month);
             }])
-            ->distinct()->get();
+            ->distinct()->orderBy($typeCollaborator, 'asc')->get();
 
         $array = [];
 
         foreach($supervisors as $sup => $value) {
 
             $name = $value->supervisor;
+            $channel = $this->channel($name);
             $meta = $this->meta($name, $month, $year);
             $plans = $this->plans($value->plans_supervisor);
             $qntd_plans = $this->qntd_plans($value->plans_supervisor);
@@ -65,21 +67,31 @@ class RvSupervisorController extends Controller
 
 
             $array[] = [
-                'collaborator' => [
-                    'name' => $name,
-                    'meta' => $meta,
-                    'percent_meta' => $percent_meta,
-                    'qntd_plans' => $qntd_plans,
-                    'plans' => $plans,
-                    'cancelled' => $cancelleds,
-                    'stars' => $stars,
-                    'price_stars' => $price_stars,
-                    'comission' => $comission
-                ]
+                'name' => $name,
+                'channel' => $channel,
+                'meta' => $meta,
+                'percent_meta' => $percent_meta,
+                'qntd_plans' => $qntd_plans,
+                'plans' => $plans,
+                'cancelled' => $cancelleds,
+                'stars' => $stars,
+                'price_stars' => $price_stars,
+                'comission' => $comission
             ];
         }
 
         return response()->json($array);
+    }
+
+    public function channel($name)
+    {
+        $channel = Collaborator::where('nome', $name)->select('canal')->first();
+
+        if(isset($channel->canal)) {
+            return $channel->canal;
+        }
+
+        return '';
     }
 
     public function plans($plans_supervisor)
