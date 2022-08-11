@@ -13,7 +13,7 @@ class RvSupervisorController extends Controller
     public function index(Request $request)
     {
 
-        $month = '07';
+        $month = '06';
         $year = '2022';
         $typeCollaborator = 'supervisor';
 
