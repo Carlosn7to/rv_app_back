@@ -45,8 +45,10 @@ class RvSupervisorController extends Controller
             ->whereYear('data_ativacao', '=', $year)
             ->where('status', '<>', 'inválida')
             ->where($typeCollaborator, '<>', '')
-            ->with(['plans_supervisor' => function($q) use($month) {
-                $q->whereMonth('data_ativacao', $month);
+            ->where('supervisor', '<>', 'BASE')
+            ->where('supervisor', '<>', 'Ivaldo Moreira Pereira de Souza')
+            ->with(['plans_supervisor' => function($q) use($month, $year) {
+                $q->whereMonth('data_ativacao', $month)->whereYear('data_ativacao', $year);
             }])
             ->distinct()->orderBy($typeCollaborator, 'asc')->get();
 
@@ -196,6 +198,7 @@ class RvSupervisorController extends Controller
             ->where('status', '<>', 'inválida')
             ->select('plano')->get();
 
+
         foreach($plans as $plan => $valor) {
             $valor = $this->sanitize_plan($valor);
             $valor = trim($valor);
@@ -217,11 +220,16 @@ class RvSupervisorController extends Controller
                 $stars += 15;
             } elseif ($valor === 'PLANO EMPRESARIAL  600 MEGA') {
                 $stars += 9;
-            } elseif ($valor=== 'PLANO 400 MEGA') {
+            } elseif ($valor === 'PLANO 400 MEGA') {
                 $stars += 15;
             } elseif ($valor === 'PLANO 800 MEGA') {
                 $stars += 25;
+            } elseif ($valor === 'PLANO 960 MEGA') {
+                $stars += 35;
+            } elseif ($valor === 'PLANO 720 MEGA') {
+                $stars += 25;
             }
+
         }
 
 
@@ -261,21 +269,23 @@ class RvSupervisorController extends Controller
 
     public function cancelleds($name, $month, $year)
     {
-
+        return 0;
     }
 
     public function sanitize_plan($valor)
     {
-        if(str_contains($valor->plano, 'FIDELIZADO')) {
-            $valor->plano = explode('FIDELIZADO', $valor->plano)[0];
-        } elseif (str_contains($valor->plano, 'TURBINADO')) {
-            $valor->plano = explode('TURBINADO', $valor->plano)[0];
-        } elseif (str_contains($valor->plano, '+')) {
-            $valor->plano = explode('+', $valor->plano)[0];
-        } elseif (str_contains($valor->plano, 'PROMOCAO')) {
-            $valor->plano = explode('PROMOCAO', $valor->plano)[0];
-        } elseif (str_contains($valor->plano, 'NÃO')) {
-            $valor->plano = explode('NÃO', $valor->plano)[0];
+        for($i = 0; $i < 5; $i++) {
+            if(str_contains($valor->plano, 'FIDELIZADO')) {
+                $valor->plano = explode('FIDELIZADO', $valor->plano)[0];
+            } elseif (str_contains($valor->plano, 'TURBINADO')) {
+                $valor->plano = explode('TURBINADO', $valor->plano)[0];
+            } elseif (str_contains($valor->plano, '+')) {
+                $valor->plano = explode('+', $valor->plano)[0];
+            } elseif (str_contains($valor->plano, 'PROMOCAO')) {
+                $valor->plano = explode('PROMOCAO', $valor->plano)[0];
+            } elseif (str_contains($valor->plano, 'NÃO')) {
+                $valor->plano = explode('NÃO', $valor->plano)[0];
+            }
         }
 
         return $valor->plano;
