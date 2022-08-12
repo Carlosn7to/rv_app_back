@@ -60,8 +60,9 @@ class RvSupervisorController extends Controller
             $meta = $this->meta($name, $month, $year);
             $plans = $this->plans($value->plans_supervisor);
             $qntd_plans = $this->qntd_plans($value->plans_supervisor);
+            $svas = $this->svas($name, $year, $month);
             $percent_meta = $this->percent_meta($meta, $qntd_plans);
-            $stars = $this->stars($meta, $name, $month, $year);
+            $stars = $this->stars($meta, $name, $month, $year) + $svas;
             $price_stars = $this->price_stars($month, $name, $meta, $qntd_plans);
             $cancelleds = $this->cancelleds($name, $month, $year);
             $deflactor = $this->deflactor($cancelleds);
@@ -73,6 +74,7 @@ class RvSupervisorController extends Controller
                 'channel' => $channel,
                 'meta' => $meta,
                 'percent_meta' => $percent_meta,
+                'svas' => $svas,
                 'qntd_plans' => $qntd_plans,
                 'plans' => $plans,
                 'cancelled' => $cancelleds,
@@ -107,6 +109,38 @@ class RvSupervisorController extends Controller
         }
 
         return $plans;
+    }
+
+    public function svas($name, $year, $month)
+    {
+
+        $fixoLocal = 0;
+        $fixoBrasil = 0;
+        $ipFixo = 0;
+
+        $plans = DataVoalle::where('supervisor', $name)
+                            ->whereYear('data_ativacao', $year)
+                            ->whereMonth('data_ativacao', $month)
+                            ->select('plano')
+                            ->get();
+
+        foreach($plans as $plan => $valor){
+            if(str_contains($valor->plano, 'FIXOS BRASIL')){
+                $fixoBrasil += 2 * 3;
+            } elseif(str_contains($valor->plano, 'FIXO BRASIL')) {
+                $fixoBrasil += 3;
+            } elseif(str_contains($valor->plano, 'FIXOS LOCAL')) {
+                $fixoLocal += 2 * 2;
+            } elseif(str_contains($valor->plano, 'FIXO LOCAL')) {
+                $fixoLocal += 2;
+            } elseif(str_contains($valor->plano, 'IP FIXO')) {
+                $ipFixo += 3;
+            }
+        }
+
+        $result = $fixoLocal + $fixoBrasil + $ipFixo;
+
+        return $result;
     }
 
     public function qntd_plans($plans_supervisor)
@@ -222,7 +256,7 @@ class RvSupervisorController extends Controller
                 $stars += 9;
             } elseif ($valor === 'PLANO 400 MEGA') {
                 $stars += 15;
-            } elseif ($valor === 'PLANO 800 MEGA') {
+            } elseif ($valor === 'PLANO 800 MEGA') { // 800Mb empresarial - 17
                 $stars += 25;
             } elseif ($valor === 'PLANO 960 MEGA') {
                 $stars += 35;

@@ -60,8 +60,9 @@ class RvVendorController extends Controller
             $meta = $this->meta($name, $month, $year);
             $plans = $this->plans($value->plans_vendors);
             $qntd_plans = $this->qntd_plans($value->plans_vendors);
+            $svas = $this->svas($name, $year, $month);
             $percent_meta = $this->percent_meta($meta, $qntd_plans);
-            $stars = $this->stars($meta, $name, $month, $year);
+            $stars = $this->stars($meta, $name, $month, $year) + $svas;
             $price_stars = $this->price_stars($month, $name, $meta, $qntd_plans);
             $cancelleds = $this->cancelleds($name, $month, $year);
             $deflactor = $this->deflactor($cancelleds);
@@ -74,6 +75,7 @@ class RvVendorController extends Controller
                 'meta' => $meta,
                 'percent_meta' => $percent_meta,
                 'qntd_plans' => $qntd_plans,
+                'svas' => $svas,
                 'plans' => $plans,
                 'cancelled' => $cancelleds,
                 'stars' => $stars,
@@ -95,6 +97,38 @@ class RvVendorController extends Controller
         }
 
         return '';
+    }
+
+    public function svas($name, $year, $month)
+    {
+
+        $fixoLocal = 0;
+        $fixoBrasil = 0;
+        $ipFixo = 0;
+
+        $plans = DataVoalle::where('vendedor', $name)
+            ->whereYear('data_ativacao', $year)
+            ->whereMonth('data_ativacao', $month)
+            ->select('plano')
+            ->get();
+
+        foreach($plans as $plan => $valor){
+            if(str_contains($valor->plano, 'FIXOS BRASIL')){
+                $fixoBrasil += 2 * 3;
+            } elseif(str_contains($valor->plano, 'FIXO BRASIL')) {
+                $fixoBrasil += 3;
+            } elseif(str_contains($valor->plano, 'FIXOS LOCAL')) {
+                $fixoLocal += 2 * 2;
+            } elseif(str_contains($valor->plano, 'FIXO LOCAL')) {
+                $fixoLocal += 2;
+            } elseif(str_contains($valor->plano, 'IP FIXO')) {
+                $ipFixo += 3;
+            }
+        }
+
+        $result = $fixoLocal + $fixoBrasil + $ipFixo;
+
+        return $result;
     }
 
     public function plans($plans_supervisor)
@@ -213,7 +247,7 @@ class RvVendorController extends Controller
             } elseif ($valor === 'PLANO 240 MEGA') {
                 $stars += 9;
             } elseif ($valor === 'PLANO 120 MEGA') {
-                $stars += 7;
+                $stars += 5;
             } elseif ($valor === 'PLANO 740 MEGA') {
                 $stars += 25;
             } elseif ($valor === 'PLANO 480 MEGA') {
@@ -228,6 +262,8 @@ class RvVendorController extends Controller
                 $stars += 35;
             } elseif ($valor === 'PLANO 720 MEGA') {
                 $stars += 25;
+            } elseif ($valor === 'COMBO PLANO 600 MEGA') {
+                $stars += 9;
             }
 
         }
