@@ -8,14 +8,15 @@ use App\Models\Meta;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
-class RvSupervisorController extends Controller
+class RvVendorController extends Controller
 {
     public function index(Request $request)
     {
 
         $month = '06';
         $year = '2022';
-        $typeCollaborator = 'supervisor';
+        $typeCollaborator = 'vendedor';
+        $supervisor = $request->input('supervisor');
 
         $sales = DataVoalle::select('id',
             'status',
@@ -40,26 +41,25 @@ class RvSupervisorController extends Controller
             }
         }
 
-        $supervisors = DataVoalle::select($typeCollaborator)
+        $vendors = DataVoalle::select($typeCollaborator)
             ->whereMonth('data_ativacao', '=', $month)
             ->whereYear('data_ativacao', '=', $year)
             ->where($typeCollaborator, '<>', '')
-            ->where('supervisor', '<>', 'BASE')
-            ->where('supervisor', '<>', 'Ivaldo Moreira Pereira de Souza')
-            ->with(['plans_supervisor' => function($q) use($month, $year) {
+            ->where('supervisor', $supervisor)
+            ->with(['plans_vendors' => function($q) use($month, $year) {
                 $q->whereMonth('data_ativacao', $month)->whereYear('data_ativacao', $year);
             }])
             ->distinct()->orderBy($typeCollaborator, 'asc')->get();
 
         $array = [];
 
-        foreach($supervisors as $sup => $value) {
+        foreach($vendors as $sup => $value) {
 
-            $name = $value->supervisor;
+            $name = $value->vendedor;
             $channel = $this->channel($name);
             $meta = $this->meta($name, $month, $year);
-            $plans = $this->plans($value->plans_supervisor);
-            $qntd_plans = $this->qntd_plans($value->plans_supervisor);
+            $plans = $this->plans($value->plans_vendors);
+            $qntd_plans = $this->qntd_plans($value->plans_vendors);
             $percent_meta = $this->percent_meta($meta, $qntd_plans);
             $stars = $this->stars($meta, $name, $month, $year);
             $price_stars = $this->price_stars($month, $name, $meta, $qntd_plans);
@@ -123,9 +123,9 @@ class RvSupervisorController extends Controller
     public function price_stars($month, $name, $meta, $qntd)
     {
 
-        //$channel = Collaborator::where('nome', $name)->select('canal')->first();
+        $channel = Collaborator::where('nome', $name)->select('canal')->first();
 
-        $channel = 'LIDER';
+        $channel = $channel->canal;
         $priceStar = 0;
 
         if($meta > 0) {
@@ -193,7 +193,7 @@ class RvSupervisorController extends Controller
         // atributos
         $stars = 0;
 
-        $plans = DataVoalle::where('supervisor', $name)
+        $plans = DataVoalle::where('vendedor', $name)
             ->whereMonth('data_ativacao', $month)
             ->whereYear('data_ativacao', $year)
             ->select('plano')->get();
@@ -269,11 +269,11 @@ class RvSupervisorController extends Controller
 
     public function cancelleds($name, $month, $year)
     {
-        $cancelled = DataVoalle::where('status', 'inválida')
-                                ->where('supervisor', $name)
-                                ->whereYear('data_ativacao', $year)
-                                ->whereMonth('data_ativacao', $month)
-                                ->count();
+        $cancelled = DataVoalle::where('status', 'Inválida')
+            ->where('vendedor', $name)
+            ->whereYear('data_ativacao', $year)
+            ->whereMonth('data_ativacao', $month)
+            ->count();
 
         return $cancelled;
     }
@@ -301,6 +301,8 @@ class RvSupervisorController extends Controller
 
         return number_format($comission, 2);
     }
+
+
 
     public function sanitize_plan($valor)
     {

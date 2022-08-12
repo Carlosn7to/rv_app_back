@@ -697,7 +697,7 @@ class DataVoalleController extends Controller
         // Instanciando o banco de dados local
         $dataVoalle = new DataVoalle();
 
-        set_time_limit(500);
+        set_time_limit(1000);
 
         $dataVoalle->truncate();
 

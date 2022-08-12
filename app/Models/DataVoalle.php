@@ -26,4 +26,10 @@ class DataVoalle extends Model
             ->select('supervisor', 'plano');
     }
 
+    public function plans_vendors()
+    {
+        return $this->hasMany(DataVoalle::class, 'vendedor', 'vendedor')
+            ->select('vendedor', 'plano');
+    }
+
 }
