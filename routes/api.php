@@ -35,7 +35,6 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::resource('users', \App\Http\Controllers\UsersController::class);
     Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
 
-    Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
     Route::resource('collaborator', \App\Http\Controllers\CollaboratorController::class);
     Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
     Route::get('rv/supervisors', [\App\Http\Controllers\RvSupervisorController::class, 'index']);
@@ -43,3 +42,4 @@ Route::group(['middleware' => 'auth:api'], function() {
 
 });
 
+Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);

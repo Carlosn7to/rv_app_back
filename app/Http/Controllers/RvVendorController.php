@@ -23,8 +23,8 @@ class RvVendorController extends Controller
             'situacao',
             'data_ativacao',
             'data_cancelamento')
-            ->whereMonth('data_ativacao','=', $month)
-            ->whereYear('data_ativacao', '=', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->get();
 
         foreach($sales as $sale => $valor) {
@@ -42,8 +42,8 @@ class RvVendorController extends Controller
         }
 
         $vendors = DataVoalle::select($typeCollaborator)
-            ->whereMonth('data_ativacao', '=', $month)
-            ->whereYear('data_ativacao', '=', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->where($typeCollaborator, '<>', '')
             ->where('supervisor', $supervisor)
             ->with(['plans_vendors' => function($q) use($month, $year) {
@@ -107,8 +107,8 @@ class RvVendorController extends Controller
         $ipFixo = 0;
 
         $plans = DataVoalle::where('vendedor', $name)
-            ->whereYear('data_ativacao', $year)
-            ->whereMonth('data_ativacao', $month)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->select('plano')
             ->get();
 
@@ -228,8 +228,8 @@ class RvVendorController extends Controller
         $stars = 0;
 
         $plans = DataVoalle::where('vendedor', $name)
-            ->whereMonth('data_ativacao', $month)
-            ->whereYear('data_ativacao', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->select('plano')->get();
 
 
@@ -307,8 +307,8 @@ class RvVendorController extends Controller
     {
         $cancelled = DataVoalle::where('status', 'Inválida')
             ->where('vendedor', $name)
-            ->whereYear('data_ativacao', $year)
-            ->whereMonth('data_ativacao', $month)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->count();
 
         return $cancelled;

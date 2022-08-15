@@ -22,8 +22,8 @@ class RvSupervisorController extends Controller
             'situacao',
             'data_ativacao',
             'data_cancelamento')
-            ->whereMonth('data_ativacao','=', $month)
-            ->whereYear('data_ativacao', '=', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->get();
 
         foreach($sales as $sale => $valor) {
@@ -41,13 +41,13 @@ class RvSupervisorController extends Controller
         }
 
         $supervisors = DataVoalle::select($typeCollaborator)
-            ->whereMonth('data_ativacao', '=', $month)
-            ->whereYear('data_ativacao', '=', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->where($typeCollaborator, '<>', '')
             ->where('supervisor', '<>', 'BASE')
             ->where('supervisor', '<>', 'Ivaldo Moreira Pereira de Souza')
             ->with(['plans_supervisor' => function($q) use($month, $year) {
-                $q->whereMonth('data_ativacao', $month)->whereYear('data_ativacao', $year);
+                $q->whereMonth('data_vigencia', $month)->whereYear('data_vigencia', $year);
             }])
             ->distinct()->orderBy($typeCollaborator, 'asc')->get();
 
@@ -119,10 +119,10 @@ class RvSupervisorController extends Controller
         $ipFixo = 0;
 
         $plans = DataVoalle::where('supervisor', $name)
-                            ->whereYear('data_ativacao', $year)
-                            ->whereMonth('data_ativacao', $month)
-                            ->select('plano')
-                            ->get();
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
+            ->select('plano')
+            ->get();
 
         foreach($plans as $plan => $valor){
             if(str_contains($valor->plano, 'FIXOS BRASIL')){
@@ -228,8 +228,8 @@ class RvSupervisorController extends Controller
         $stars = 0;
 
         $plans = DataVoalle::where('supervisor', $name)
-            ->whereMonth('data_ativacao', $month)
-            ->whereYear('data_ativacao', $year)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
             ->select('plano')->get();
 
 
@@ -304,10 +304,10 @@ class RvSupervisorController extends Controller
     public function cancelleds($name, $month, $year)
     {
         $cancelled = DataVoalle::where('status', 'inválida')
-                                ->where('supervisor', $name)
-                                ->whereYear('data_ativacao', $year)
-                                ->whereMonth('data_ativacao', $month)
-                                ->count();
+            ->where('supervisor', $name)
+            ->whereMonth('data_vigencia','=', $month)
+            ->whereYear('data_vigencia', '=', $year)
+            ->count();
 
         return $cancelled;
     }
