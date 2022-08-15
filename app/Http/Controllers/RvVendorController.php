@@ -10,6 +10,33 @@ use Illuminate\Http\Request;
 
 class RvVendorController extends Controller
 {
+
+
+
+    public function plans_get(Request $request)
+    {
+
+        $vendor = $request->input('vendor');
+        $month = '06';
+        $year = '2022';
+
+        $sales = DataVoalle::select('plano')->selectRaw('COUNT(plano) as "qntd"')
+            ->where('vendedor', $vendor)
+            ->whereMonth('data_vigencia', $month)
+            ->whereYear('data_vigencia', $year)
+            ->groupBy('plano')
+            ->get();
+
+        foreach($sales as $sale => $value) {
+            $value->plano = $this->sanitize_plan($value);
+        }
+
+
+        return response()->json($sales);
+
+    }
+
+
     public function index(Request $request)
     {
 
@@ -47,7 +74,7 @@ class RvVendorController extends Controller
             ->where($typeCollaborator, '<>', '')
             ->where('supervisor', $supervisor)
             ->with(['plans_vendors' => function($q) use($month, $year) {
-                $q->whereMonth('data_ativacao', $month)->whereYear('data_ativacao', $year);
+                $q->whereMonth('data_vigencia', $month)->whereYear('data_vigencia', $year);
             }])
             ->distinct()->orderBy($typeCollaborator, 'asc')->get();
 
@@ -232,7 +259,6 @@ class RvVendorController extends Controller
             ->whereYear('data_vigencia', '=', $year)
             ->select('plano')->get();
 
-
         foreach($plans as $plan => $valor) {
             $valor = $this->sanitize_plan($valor);
             $valor = trim($valor);
@@ -257,7 +283,7 @@ class RvVendorController extends Controller
             } elseif ($valor === 'PLANO 400 MEGA') {
                 $stars += 15;
             } elseif ($valor === 'PLANO 800 MEGA') {
-                $stars += 25;
+                $stars += 17;
             } elseif ($valor === 'PLANO 960 MEGA') {
                 $stars += 35;
             } elseif ($valor === 'PLANO 720 MEGA') {

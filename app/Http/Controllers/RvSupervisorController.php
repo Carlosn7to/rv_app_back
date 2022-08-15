@@ -10,6 +10,30 @@ use Illuminate\Http\Request;
 
 class RvSupervisorController extends Controller
 {
+
+    public function plans_get(Request $request)
+    {
+
+        $supervisor = $request->input('supervisor');
+        $month = '06';
+        $year = '2022';
+
+        $sales = DataVoalle::select('plano')->selectRaw('COUNT(plano) as "qntd"')
+                            ->where('supervisor', $supervisor)
+                            ->whereMonth('data_vigencia', $month)
+                            ->whereYear('data_vigencia', $year)
+                            ->groupBy('plano')
+                            ->get();
+
+        foreach($sales as $sale => $value) {
+            $value->plano = $this->sanitize_plan($value);
+        }
+
+
+        return response()->json($sales);
+
+    }
+
     public function index(Request $request)
     {
 
@@ -247,7 +271,7 @@ class RvSupervisorController extends Controller
             } elseif ($valor === 'PLANO 240 MEGA') {
                 $stars += 9;
             } elseif ($valor === 'PLANO 120 MEGA') {
-                $stars += 7;
+                $stars += 5;
             } elseif ($valor === 'PLANO 740 MEGA') {
                 $stars += 25;
             } elseif ($valor === 'PLANO 480 MEGA') {
@@ -257,7 +281,7 @@ class RvSupervisorController extends Controller
             } elseif ($valor === 'PLANO 400 MEGA') {
                 $stars += 15;
             } elseif ($valor === 'PLANO 800 MEGA') { // 800Mb empresarial - 17
-                $stars += 25;
+                $stars += 17;
             } elseif ($valor === 'PLANO 960 MEGA') {
                 $stars += 35;
             } elseif ($valor === 'PLANO 720 MEGA') {
