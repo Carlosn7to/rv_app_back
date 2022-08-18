@@ -41,7 +41,7 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::get('rv/vendors', [\App\Http\Controllers\RvVendorController::class, 'index']);
     Route::get('rv/supervisors/sales', [\App\Http\Controllers\RvSupervisorController::class, 'plans_get']);
     Route::get('rv/vendors/sales', [\App\Http\Controllers\RvVendorController::class, 'plans_get']);
+    Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
 
 });
 
-Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
