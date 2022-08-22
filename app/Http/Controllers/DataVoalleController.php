@@ -528,7 +528,7 @@ class DataVoalleController extends Controller
         $today = Carbon::now()->format('d');
         $daysMonth = Carbon::now()->format('t');
         $missing = $daysMonth - $today;
-        $starsMissing = $missing * $stars;
+        $starsMissing = $daysMonth * $stars;
         $result = $starsMissing / $today;
         $comission = $result * $priceStar;
 
@@ -548,7 +548,7 @@ class DataVoalleController extends Controller
         $today = Carbon::now()->format('d');
         $daysMonth = Carbon::now()->format('t');
         $missing = $daysMonth - $today;
-        $starsMissing = $missing * $sales;
+        $starsMissing = $daysMonth * $sales;
         $resultSales = $starsMissing / $today;
 
         $plans = DataVoalle::select('vendedor', 'plano')->selectRaw('count(id) AS qntd')
@@ -591,7 +591,7 @@ class DataVoalleController extends Controller
 
         // Projetando meta baseado na regra de 3
         $missing = $daysMonth - $today;
-        $metaMissing = $missing * $result;
+        $metaMissing = $daysMonth * $result;
         $result = $metaMissing / $today;
 
         // Aplicando remuneração variável

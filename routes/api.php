@@ -36,12 +36,12 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::resource('data_voalle', \App\Http\Controllers\DataVoalleController::class);
 
     Route::resource('collaborator', \App\Http\Controllers\CollaboratorController::class);
-    Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
     Route::get('rv/supervisors', [\App\Http\Controllers\RvSupervisorController::class, 'index']);
     Route::get('rv/vendors', [\App\Http\Controllers\RvVendorController::class, 'index']);
     Route::get('rv/supervisors/sales', [\App\Http\Controllers\RvSupervisorController::class, 'plans_get']);
     Route::get('rv/vendors/sales', [\App\Http\Controllers\RvVendorController::class, 'plans_get']);
-    Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
 
 });
 
+Route::get('teste', [\App\Http\Controllers\TestController::class, 'index']);
+Route::get('data_items/filter-sales', [\App\Http\Controllers\DataVoalleController::class, 'filterSalesVendor']);
