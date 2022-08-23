@@ -494,15 +494,15 @@ class DataVoalleController extends Controller
             } elseif ($valor->plano === 'PLANO EMPRESARIAL 1 GIGA') {
                 $stars += $valor->qntd*35;
             } elseif ($valor->plano === 'PLANO 1 GIGA') {
-                $stars += $valor->qntd*35;
+                $stars += $valor->qntd*15;
             } elseif ($valor->plano === 'PLANO 240 MEGA') {
                 $stars += $valor->qntd*9;
             } elseif ($valor->plano === 'PLANO 120 MEGA') {
                 $stars += $valor->qntd*7;
             } elseif ($valor->plano === 'PLANO 740 MEGA') {
-                $stars += $valor->qntd*25;
+                $stars += $valor->qntd*9;
             } elseif ($valor->plano === 'PLANO 480 MEGA') {
-                $stars += $valor->qntd*15;
+                $stars += $valor->qntd*7;
             } elseif ($valor->plano === 'PLANO EMPRESARIAL  600 MEGA') {
                 $stars += $valor->qntd*9;
             } elseif ($valor->plano === 'PLANO 400 MEGA') {
